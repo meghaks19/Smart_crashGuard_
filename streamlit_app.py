@@ -1,7 +1,9 @@
 ﻿"""Start with: streamlit run streamlit_app.py"""
 from __future__ import annotations
-from dataclasses import replace
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent / "src"))
+from dataclasses import replace
 import shutil
 import time
 import cv2
