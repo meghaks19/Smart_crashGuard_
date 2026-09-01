@@ -1,0 +1,28 @@
+﻿# Copy this to settings.yaml, then replace the placeholders before use.
+vehicle_id: "YOUR-VEHICLE-ID"
+source: 0                         # webcam number, video file, or RTSP URL
+model_path: "models/best.pt"      # Add your trained YOLO weights here
+accident_class_names: ["accident", "crash", "collision"]
+confidence_threshold: 0.75
+required_positive_frames: 5
+detector_frame_stride: 1
+pre_event_minutes: 10
+post_event_minutes: 10
+segment_seconds: 60
+output_dir: "storage"
+show_preview: true
+gps:
+  enabled: false
+  serial_port: "COM3"
+  baudrate: 9600
+contacts:
+  - name: "Replace with family contact"
+    phone: "+9163660299"        
+    relation: "Family"
+rag:
+  knowledge_dir: "docs/emergency"
+  index_path: "artifacts/emergency.faiss"
+  metadata_path: "artifacts/emergency_chunks.json"
+  embedding_model: "all-MiniLM-L6-v2"
+  top_k: 3
+  use_openai: false
