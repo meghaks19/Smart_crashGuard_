@@ -1,0 +1,77 @@
+
+╔════════════════════════════════════════════════════════════════════╗
+║                  EMERGENCY RESPONSE GUIDANCE                       ║
+║                     ACCIDENT ASSISTANCE REPORT                     ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🚨 EMERGENCY: CRITICAL
+Type: COLLISION
+Time: 2026-09-01T20:06:06.192280
+
+📍 LOCATION:
+  Latitude: 37.7749
+  Longitude: -122.4194
+
+🆘 IMMEDIATE STEPS:
+  1. Turn on hazard lights
+  2. Check for injuries - call 911 if needed
+  3. Move vehicles to safe location if possible
+  4. Do not admit fault
+  5. Exchange insurance information
+  6. Take photos of damage and scene
+  7. Get witness contact information
+  8. File police report if required
+
+☎️  EMERGENCY NUMBER: 911
+
+💊 FIRST AID INFORMATION:
+  If bleeding:
+    • Apply direct pressure with clean cloth
+    • Elevate injured area above heart if possible
+    • Do not remove embedded objects
+    • Call 911 if severe
+  If shock:
+    • Lay person flat with legs elevated
+    • Keep warm with blanket
+    • Do not give food or water
+    • Monitor breathing and pulse
+  If spinal_injury:
+    • Do NOT move the person
+    • Keep head and neck immobilized
+    • Call 911 immediately
+    • Wait for professional responders
+  If unconscious:
+    • Check for responsiveness and breathing
+    • Call 911 immediately
+    • Place in recovery position if breathing
+    • Perform CPR if trained and no pulse
+
+🏥 NEARBY RESOURCES:
+  Hospital: Nearest Hospital (~10km)
+    Emergency Room: Yes
+
+🛞 ROADSIDE ASSISTANCE:
+  AAA Roadside Assistance: 1-800-AAA-HELP
+  Insurance Roadside Assistance: Check your policy card
+
+📋 INSURANCE STEPS:
+  • Exchange policy numbers with other drivers
+  • Get claim adjuster contact info
+  • Document accident with photos
+  • Get police report number
+
+⚠️  PRESERVE EVIDENCE:
+  • Video footage from dashcam has been saved
+  • Timestamp: 2026-09-01T20:06:06.192280
+  • Frame: N/A
+  • Location saved: (37.7749, -122.4194)
+  
+  Provide this information to:
+    - Emergency responders
+    - Insurance company
+    - Police report
+
+═════════════════════════════════════════════════════════════════════
+Generated: C:\Users\Jayakumar\Documents\smart_crashguard\smart-crash-guard
+Report Type: Automated Emergency Assistance
+═════════════════════════════════════════════════════════════════════

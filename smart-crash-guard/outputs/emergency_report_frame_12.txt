@@ -1,0 +1,55 @@
+
+╔════════════════════════════════════════════════════════════════════╗
+║                  EMERGENCY RESPONSE GUIDANCE                       ║
+║                     ACCIDENT ASSISTANCE REPORT                     ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🚨 EMERGENCY: WARNING
+Type: NEAR_MISS
+Time: 2026-09-01T20:06:06.497828
+
+📍 LOCATION:
+  Latitude: 37.7749
+  Longitude: -122.4194
+
+🆘 IMMEDIATE STEPS:
+  1. Take deep breaths - stay calm
+  2. Check mirrors and blind spots
+  3. Reduce speed slightly
+  4. Increase following distance
+  5. Note other vehicle details if reckless driving
+  6. Consider reporting dangerous driver if safe
+
+☎️  EMERGENCY NUMBER: 911
+
+💊 FIRST AID INFORMATION:
+
+🏥 NEARBY RESOURCES:
+  Hospital: Nearest Hospital (~10km)
+    Emergency Room: Yes
+
+🛞 ROADSIDE ASSISTANCE:
+  AAA Roadside Assistance: 1-800-AAA-HELP
+  Insurance Roadside Assistance: Check your policy card
+
+📋 INSURANCE STEPS:
+  • Exchange policy numbers with other drivers
+  • Get claim adjuster contact info
+  • Document accident with photos
+  • Get police report number
+
+⚠️  PRESERVE EVIDENCE:
+  • Video footage from dashcam has been saved
+  • Timestamp: 2026-09-01T20:06:06.497828
+  • Frame: N/A
+  • Location saved: (37.7749, -122.4194)
+  
+  Provide this information to:
+    - Emergency responders
+    - Insurance company
+    - Police report
+
+═════════════════════════════════════════════════════════════════════
+Generated: C:\Users\Jayakumar\Documents\smart_crashguard\smart-crash-guard
+Report Type: Automated Emergency Assistance
+═════════════════════════════════════════════════════════════════════
