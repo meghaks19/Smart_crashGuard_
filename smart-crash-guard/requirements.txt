@@ -19,3 +19,6 @@ pandas>=1.3.0
 # Optional: For advanced features
 matplotlib>=3.5.0  # Visualization
 Pillow>=9.0.0      # Image processing
+streamlit
+opencv-python-headless
+twilio
