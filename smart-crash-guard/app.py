@@ -53,8 +53,15 @@ st.write(
 # GPS LOCATION
 # ============================================================
 
-GPS_LOCATION = "12.9716° N, 77.5946° E"
+GPS_LATITUDE = 12.9716
+GPS_LONGITUDE = 77.5946
 
+GPS_LOCATION = (
+    f"{GPS_LATITUDE}° N, "
+    f"{GPS_LONGITUDE}° E"
+)
+
+st.write(f"📍 GPS Location: {GPS_LOCATION}")
 
 # ============================================================
 # MODEL PATH
