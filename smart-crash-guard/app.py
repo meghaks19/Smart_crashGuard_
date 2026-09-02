@@ -148,17 +148,13 @@ if st.button(
 # ----------------------------------------------------
 # Load YOLO damage detector
 # ----------------------------------------------------
+output_dir = os.path.join(os.path.dirname(__file__), "outputs")
+os.makedirs(output_dir, exist_ok=True)
 
-MODEL_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "yolov8n.pt"
-)
+video_path = os.path.join(output_dir, "uploaded_video.mp4")
 
-detector = DamageDetector(
-    model_path=MODEL_PATH,
-    conf=0.45
-)
-
+with open(video_path, "wb") as file:
+    file.write(uploaded_video.getbuffer())
 # ----------------------------------------------------
 # Check model
 # ----------------------------------------------------
