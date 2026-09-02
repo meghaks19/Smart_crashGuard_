@@ -145,11 +145,11 @@ if st.button(
                 uploaded_video.getbuffer()
             )
 
+# ----------------------------------------------------
+# Load YOLO damage detector
+# ----------------------------------------------------
 
-        # ----------------------------------------------------
-        # Load YOLO damage detector
-        # ----------------------------------------------------
-        MODEL_PATH = os.path.join(
+MODEL_PATH = os.path.join(
     os.path.dirname(__file__),
     "yolov8n.pt"
 )
@@ -158,44 +158,42 @@ detector = DamageDetector(
     model_path=MODEL_PATH,
     conf=0.45
 )
-        # ----------------------------------------------------
-        # Check model
-        # ----------------------------------------------------
 
-        if not detector.available:
+# ----------------------------------------------------
+# Check model
+# ----------------------------------------------------
 
-            st.error(
-                "❌ YOLO model is not available."
-            )
+if not detector.available:
 
-            st.info(
-                "Check models/vehicle_damage.pt"
-            )
+    st.error(
+        "❌ YOLO model is not available."
+    )
 
-        else:
+    st.info(
+        f"Check model file: {MODEL_PATH}"
+    )
 
-            st.info(
-                "🤖 Analyzing video..."
-            )
+else:
 
+    st.info(
+        "🤖 Analyzing video..."
+    )
 
-            # ------------------------------------------------
-            # Open video with OpenCV
-            # ------------------------------------------------
+    # ------------------------------------------------
+    # Open video with OpenCV
+    # ------------------------------------------------
 
-            cap = cv2.VideoCapture(
-                video_path
-            )
+    cap = cv2.VideoCapture(video_path)
 
+    if not cap.isOpened():
 
-            if not cap.isOpened():
+        st.error(
+            "❌ Cannot open uploaded video."
+        )
 
-                st.error(
-                    "❌ Cannot open uploaded video."
-                )
-
-            else:
-
+    else:
+        # Continue with your existing video-processing code here
+        
                 # --------------------------------------------
                 # Video information
                 # --------------------------------------------
