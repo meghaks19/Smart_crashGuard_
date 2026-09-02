@@ -151,7 +151,7 @@ if st.button(
         # ----------------------------------------------------
 
         detector = DamageDetector(
-            model_path="models/vehicle_damage.pt",
+            model_path="damage_detector.pt",
             conf=0.45
         )
 
