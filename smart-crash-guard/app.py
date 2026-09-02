@@ -640,26 +640,7 @@ if st.button(
             f"📍 GPS Location: {GPS_LOCATION}"
         )
 
-
-        if detected_label:
-
-            st.write(
-                f"🔎 Detected: {detected_label}"
-            )
-
-
-        st.write(
-            f"🎞️ Frames checked: "
-            f"{frames_checked}"
-        )
-
-
-        st.write(
-            f"✅ Positive frames: "
-            f"{positive_frames}"
-        )
-
-
+        
         st.write(
             f"🔁 Consecutive detections: "
             f"{max_consecutive_positive}"
