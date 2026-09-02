@@ -11,7 +11,7 @@ class DamageDetector:
         "crack", "broken", "shatter", "wreck"
     )
 
-    def __init__(self, model_path="models/vehicle_damage.pt", conf=0.45):
+    def __init__(self, model_path="yolov8n.pt", conf=0.45):
         self.model_path = Path(model_path)
         self.conf = conf
         self.damage_ids = []
