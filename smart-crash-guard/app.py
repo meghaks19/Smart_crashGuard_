@@ -936,3 +936,7 @@ if st.session_state.accident_detected:
                 st.write(
                     f"Error: {error}"
                 )
+
+        
+
+
