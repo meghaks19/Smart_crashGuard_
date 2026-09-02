@@ -12,10 +12,16 @@ class DamageDetector:
     )
 
     def __init__(self, model_path="yolov8n.pt", conf=0.45):
-        self.model_path = Path(model_path)
-        self.conf = conf
-        self.damage_ids = []
-        self.model = None
+    self.model_path = Path(model_path)
+    self.conf = conf
+    self.damage_ids = []
+    self.model = None
+
+    if not self.model_path.exists():
+        return
+
+    self.model = YOLO(str(self.model_path))
+    self.damage_ids = list(self.model.names.keys())
 
         if not self.model_path.exists():
             return
