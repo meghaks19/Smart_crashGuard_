@@ -39,7 +39,7 @@ if "gps_location" not in st.session_state:
 # TITLE
 # ============================================================
 
-st.title("🚗 Smart CrashGuard")
+st.title(" Smart CrashGuard")
 
 st.write(
     "AI-based vehicle accident detection and emergency alert system"
@@ -151,7 +151,7 @@ if st.button(
         # ----------------------------------------------------
 
         detector = DamageDetector(
-            model_path="models/vehicle_damage.pt",
+            model_path="C:\Users\Jayakumar\Documents\smart_crashguard\smart-crash-guard\damage_detector.py",
             conf=0.45
         )
 
@@ -160,14 +160,14 @@ if st.button(
         # Check model
         # ----------------------------------------------------
 
-        if not detector.available:
+        if not damage_detector.available:
 
             st.error(
                 "❌ YOLO model is not available."
             )
 
             st.info(
-                "Check models/vehicle_damage.pt"
+                "Check damage_detector.pt"
             )
 
         else:
