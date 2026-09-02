@@ -34,6 +34,9 @@ if "accident_time" not in st.session_state:
 if "gps_location" not in st.session_state:
     st.session_state.gps_location = ""
 
+if "accident_clip" not in st.session_state:
+    st.session_state.accident_clip = None
+
 
 # ============================================================
 # TITLE
@@ -68,21 +71,18 @@ MODEL_PATH = os.path.join(
 # ============================================================
 
 try:
-
     detector = DamageDetector(
         model_path=MODEL_PATH,
         conf=0.45
     )
 
 except Exception as error:
-
     st.error("❌ Failed to load YOLO model.")
     st.exception(error)
     st.stop()
 
 
 if not detector.available:
-
     st.error("❌ YOLO model is not available.")
 
     st.info(
@@ -97,7 +97,6 @@ if not detector.available:
 # ============================================================
 
 def send_sms(phone_number, message):
-
     account_sid = st.secrets["TWILIO_ACCOUNT_SID"]
     auth_token = st.secrets["TWILIO_AUTH_TOKEN"]
     twilio_phone = st.secrets["TWILIO_PHONE_NUMBER"]
@@ -117,12 +116,154 @@ def send_sms(phone_number, message):
 
 
 # ============================================================
+# EXTRACT ACCIDENT CLIP
+# ============================================================
+
+def extract_accident_clip(
+    video_path,
+    output_path,
+    accident_time_seconds,
+    before_seconds=600,
+    after_seconds=600
+):
+    """
+    Extract a video clip containing:
+
+    10 minutes BEFORE accident
+    +
+    accident
+    +
+    10 minutes AFTER accident
+
+    600 seconds = 10 minutes.
+    """
+
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        return False, 0, 0
+
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    total_frames = int(
+        cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    )
+
+    if fps <= 0:
+        cap.release()
+        return False, 0, 0
+
+    duration = total_frames / fps
+
+    # --------------------------------------------------------
+    # Calculate available clip range
+    # --------------------------------------------------------
+
+    start_time = max(
+        0,
+        accident_time_seconds - before_seconds
+    )
+
+    end_time = min(
+        duration,
+        accident_time_seconds + after_seconds
+    )
+
+    if end_time <= start_time:
+        cap.release()
+        return False, 0, 0
+
+    # --------------------------------------------------------
+    # Move to beginning of clip
+    # --------------------------------------------------------
+
+    start_frame = int(
+        start_time * fps
+    )
+
+    end_frame = int(
+        end_time * fps
+    )
+
+    cap.set(
+        cv2.CAP_PROP_POS_FRAMES,
+        start_frame
+    )
+
+    # --------------------------------------------------------
+    # Video dimensions
+    # --------------------------------------------------------
+
+    width = int(
+        cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    )
+
+    height = int(
+        cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    )
+
+    if width <= 0 or height <= 0:
+        cap.release()
+        return False, 0, 0
+
+    # --------------------------------------------------------
+    # Create video writer
+    # --------------------------------------------------------
+
+    fourcc = cv2.VideoWriter_fourcc(
+        *"mp4v"
+    )
+
+    writer = cv2.VideoWriter(
+        output_path,
+        fourcc,
+        fps,
+        (width, height)
+    )
+
+    if not writer.isOpened():
+        cap.release()
+        return False, 0, 0
+
+    # --------------------------------------------------------
+    # Extract frames
+    # --------------------------------------------------------
+
+    current_frame = start_frame
+
+    while current_frame <= end_frame:
+
+        success, frame = cap.read()
+
+        if not success:
+            break
+
+        writer.write(frame)
+
+        current_frame += 1
+
+    writer.release()
+    cap.release()
+
+    extracted_duration = (
+        end_time - start_time
+    )
+
+    return True, start_time, extracted_duration
+
+
+# ============================================================
 # VIDEO UPLOAD
 # ============================================================
 
 uploaded_video = st.file_uploader(
     "Upload Accident Video",
-    type=["mp4", "avi", "mov", "mkv"]
+    type=[
+        "mp4",
+        "avi",
+        "mov",
+        "mkv"
+    ]
 )
 
 
@@ -225,6 +366,24 @@ if st.button(
         )
     )
 
+    fps = cap.get(
+        cv2.CAP_PROP_FPS
+    )
+
+    if fps <= 0:
+        fps = 30.0
+
+
+    duration_seconds = (
+        total_frames / fps
+        if total_frames > 0
+        else 0
+    )
+
+
+    # ========================================================
+    # DETECTION VARIABLES
+    # ========================================================
 
     frame_number = 0
     frames_checked = 0
@@ -237,6 +396,8 @@ if st.button(
     detected_label = None
 
     accident_found = False
+    accident_frame = None
+    accident_video_time = None
 
 
     # ========================================================
@@ -340,11 +501,22 @@ if st.button(
         if (
             max_consecutive_positive
             >= 5
+            and not accident_found
         ):
 
             accident_found = True
 
-            break
+            accident_frame = frame_number
+
+            accident_video_time = (
+                frame_number / fps
+            )
+
+            # IMPORTANT:
+            # Do NOT break here.
+            #
+            # We continue processing the video so that
+            # the 10-minute-after section is available.
 
 
         # ====================================================
@@ -354,8 +526,7 @@ if st.button(
         if total_frames > 0:
 
             progress_value = (
-                frame_number
-                / total_frames
+                frame_number / total_frames
             )
 
             progress.progress(
@@ -388,8 +559,20 @@ if st.button(
             "%d-%m-%Y"
         )
 
-        accident_time = now.strftime(
-            "%H:%M:%S"
+
+        # Time inside the uploaded video
+        video_minutes = int(
+            accident_video_time // 60
+        )
+
+        video_seconds = int(
+            accident_video_time % 60
+        )
+
+
+        accident_time = (
+            f"{video_minutes:02d}:"
+            f"{video_seconds:02d}"
         )
 
 
@@ -440,7 +623,7 @@ if st.button(
         with col2:
 
             st.metric(
-                "Time",
+                "Video Time",
                 accident_time
             )
 
@@ -466,12 +649,14 @@ if st.button(
 
 
         st.write(
-            f"🎞️ Frames checked: {frames_checked}"
+            f"🎞️ Frames checked: "
+            f"{frames_checked}"
         )
 
 
         st.write(
-            f"✅ Positive frames: {positive_frames}"
+            f"✅ Positive frames: "
+            f"{positive_frames}"
         )
 
 
@@ -479,6 +664,140 @@ if st.button(
             f"🔁 Consecutive detections: "
             f"{max_consecutive_positive}"
         )
+
+
+        # ====================================================
+        # EXTRACT 10 MINUTES BEFORE + AFTER
+        # ====================================================
+
+        st.subheader(
+            "🎬 Accident Video Extraction"
+        )
+
+
+        st.write(
+            "Extracting 10 minutes before "
+            "and 10 minutes after the detected accident..."
+        )
+
+
+        accident_clip_path = os.path.join(
+            output_dir,
+            "accident_clip.mp4"
+        )
+
+
+        success, clip_start, clip_duration = (
+            extract_accident_clip(
+                video_path=video_path,
+                output_path=accident_clip_path,
+                accident_time_seconds=(
+                    accident_video_time
+                ),
+                before_seconds=600,
+                after_seconds=600
+            )
+        )
+
+
+        if success:
+
+            st.session_state.accident_clip = (
+                accident_clip_path
+            )
+
+
+            st.success(
+                "✅ Accident clip created successfully!"
+            )
+
+
+            # ------------------------------------------------
+            # Show extraction information
+            # ------------------------------------------------
+
+            actual_before = min(
+                600,
+                accident_video_time
+            )
+
+            actual_after = min(
+                600,
+                max(
+                    0,
+                    duration_seconds
+                    - accident_video_time
+                )
+            )
+
+
+            col1, col2, col3 = st.columns(3)
+
+
+            with col1:
+
+                st.metric(
+                    "Before Accident",
+                    f"{actual_before / 60:.1f} min"
+                )
+
+
+            with col2:
+
+                st.metric(
+                    "Accident",
+                    accident_time
+                )
+
+
+            with col3:
+
+                st.metric(
+                    "After Accident",
+                    f"{actual_after / 60:.1f} min"
+                )
+
+
+            # ------------------------------------------------
+            # Display extracted video
+            # ------------------------------------------------
+
+            st.subheader(
+                "🎥 Accident Clip"
+            )
+
+
+            with open(
+                accident_clip_path,
+                "rb"
+            ) as clip_file:
+
+                clip_bytes = clip_file.read()
+
+
+            st.video(
+                clip_bytes
+            )
+
+
+            # ------------------------------------------------
+            # Download button
+            # ------------------------------------------------
+
+            st.download_button(
+                label="⬇️ Download Accident Clip",
+                data=clip_bytes,
+                file_name="accident_clip.mp4",
+                mime="video/mp4"
+            )
+
+
+        else:
+
+            st.warning(
+                "⚠️ Accident detected, but the "
+                "surrounding video clip could not be created."
+            )
 
 
     # ========================================================
@@ -495,12 +814,14 @@ if st.button(
 
 
         st.write(
-            f"🎞️ Frames checked: {frames_checked}"
+            f"🎞️ Frames checked: "
+            f"{frames_checked}"
         )
 
 
         st.write(
-            f"Positive frames: {positive_frames}"
+            f"Positive frames: "
+            f"{positive_frames}"
         )
 
 
@@ -561,7 +882,7 @@ if st.session_state.accident_detected:
                 "Possible accident detected.\n\n"
                 f"Date: "
                 f"{st.session_state.accident_date}\n"
-                f"Time: "
+                f"Video Time: "
                 f"{st.session_state.accident_time}\n"
                 f"GPS Location: "
                 f"{st.session_state.gps_location}\n\n"
@@ -588,17 +909,20 @@ if st.session_state.accident_detected:
 
 
                 st.write(
-                    f"👤 Family Member: {family_name}"
+                    f"👤 Family Member: "
+                    f"{family_name}"
                 )
 
 
                 st.write(
-                    f"📱 Phone: {family_phone}"
+                    f"📱 Phone: "
+                    f"{family_phone}"
                 )
 
 
                 st.write(
-                    f"📨 Message ID: {sms_sid}"
+                    f"📨 Message ID: "
+                    f"{sms_sid}"
                 )
 
 
@@ -608,15 +932,7 @@ if st.session_state.accident_detected:
                     "❌ Unable to send SMS."
                 )
 
+
                 st.write(
                     f"Error: {error}"
                 )
-
-
-
-
-
-
-
-
-
