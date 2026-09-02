@@ -151,7 +151,7 @@ if st.button(
         # ----------------------------------------------------
 
         detector = DamageDetector(
-            model_path="C:\Users\Jayakumar\Documents\smart_crashguard\smart-crash-guard\damage_detector.py",
+            model_path= "damage_detector.py",
             conf=0.45
         )
 
