@@ -127,3 +127,4 @@ if st.session_state.accident_detected:
         st.write(f"📱 Family Member: {st.session_state.alert_info['family_member']}")
         st.write(f"☎️ Phone: {st.session_state.alert_info['phone']}")
         st.write(f"⏰ Time: {st.session_state.alert_info['accident_time']}")
+        
