@@ -22,11 +22,7 @@ class DamageDetector:
 
         self.model = YOLO(str(self.model_path))
 
-        self.damage_ids = [
-            class_id
-            for class_id, label in self.model.names.items()
-            if any(term in str(label).lower() for term in self.DAMAGE_TERMS)
-        ]
+        self.damage_ids = list(self.model.names.keys())
 
     @property
     def available(self):
