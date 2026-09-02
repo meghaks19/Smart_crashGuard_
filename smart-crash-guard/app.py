@@ -149,6 +149,11 @@ if st.button(
         # ----------------------------------------------------
         # Load YOLO damage detector
         # ----------------------------------------------------
+        MODEL_PATH = os.path.join(
+        os.path.dirname(__file__),
+        "models",
+        "vehicle_damage.pt"
+        )
 
         detector = DamageDetector(
             model_path="damage_detector.pt",
