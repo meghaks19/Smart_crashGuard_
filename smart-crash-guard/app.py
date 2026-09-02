@@ -35,7 +35,7 @@ if "gps_location" not in st.session_state:
     st.session_state.gps_location = ""
 
 
-# ===========================================================
+# ============================================================
 # TITLE
 # ============================================================
 
@@ -50,10 +50,46 @@ st.write(
 # GPS LOCATION
 # ============================================================
 
-# DEMO GPS LOCATION
-# Replace this with your actual GPS module/location later.
-
 GPS_LOCATION = "12.9716° N, 77.5946° E"
+
+
+# ============================================================
+# MODEL PATH
+# ============================================================
+
+MODEL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "yolov8n.pt"
+)
+
+
+# ============================================================
+# LOAD YOLO MODEL
+# ============================================================
+
+try:
+
+    detector = DamageDetector(
+        model_path=MODEL_PATH,
+        conf=0.45
+    )
+
+except Exception as error:
+
+    st.error("❌ Failed to load YOLO model.")
+    st.exception(error)
+    st.stop()
+
+
+if not detector.available:
+
+    st.error("❌ YOLO model is not available.")
+
+    st.info(
+        f"Check model file: {MODEL_PATH}"
+    )
+
+    st.stop()
 
 
 # ============================================================
@@ -86,7 +122,7 @@ def send_sms(phone_number, message):
 
 uploaded_video = st.file_uploader(
     "Upload Accident Video",
-    type=["mp4", "avi", "mov"]
+    type=["mp4", "avi", "mov", "mkv"]
 )
 
 
@@ -110,76 +146,65 @@ if st.button(
     type="primary"
 ):
 
+    # --------------------------------------------------------
+    # Check video
+    # --------------------------------------------------------
+
     if uploaded_video is None:
 
         st.warning(
             "⚠️ Please upload a video first."
         )
 
-    else:
+        st.stop()
 
-        # ----------------------------------------------------
-        # Create output folder
-        # ----------------------------------------------------
 
-        os.makedirs(
-            "outputs",
-            exist_ok=True
+    # --------------------------------------------------------
+    # Create output folder
+    # --------------------------------------------------------
+
+    output_dir = os.path.join(
+        os.path.dirname(__file__),
+        "outputs"
+    )
+
+    os.makedirs(
+        output_dir,
+        exist_ok=True
+    )
+
+
+    # --------------------------------------------------------
+    # Save uploaded video
+    # --------------------------------------------------------
+
+    video_path = os.path.join(
+        output_dir,
+        "uploaded_video.mp4"
+    )
+
+    with open(
+        video_path,
+        "wb"
+    ) as video_file:
+
+        video_file.write(
+            uploaded_video.getbuffer()
         )
 
 
-        # ----------------------------------------------------
-        # Save uploaded video
-        # ----------------------------------------------------
-
-        video_path = (
-            "outputs/uploaded_video.mp4"
-        )
-
-        with open(
-            video_path,
-            "wb"
-        ) as video_file:
-
-            video_file.write(
-                uploaded_video.getbuffer()
-            )
-
-# ----------------------------------------------------
-# Load YOLO damage detector
-# ----------------------------------------------------
-output_dir = os.path.join(os.path.dirname(__file__), "outputs")
-os.makedirs(output_dir, exist_ok=True)
-
-video_path = os.path.join(output_dir, "uploaded_video.mp4")
-
-with open(video_path, "wb") as file:
-    file.write(uploaded_video.getbuffer())
-# ----------------------------------------------------
-# Check model
-# ----------------------------------------------------
-
-if not detector.available:
-
-    st.error(
-        "❌ YOLO model is not available."
+    st.success(
+        "✅ Video uploaded successfully."
     )
 
-    st.info(
-        f"Check model file: {MODEL_PATH}"
+
+    # ========================================================
+    # OPEN VIDEO
+    # ========================================================
+
+    cap = cv2.VideoCapture(
+        video_path
     )
-
-else:
-
-    st.info(
-        "🤖 Analyzing video..."
-    )
-
-    # ------------------------------------------------
-    # Open video with OpenCV
-    # ------------------------------------------------
-
-    cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
 
@@ -187,299 +212,296 @@ else:
             "❌ Cannot open uploaded video."
         )
 
-    else:
-        # Continue with your existing video-processing code here
-        
-                # --------------------------------------------
-                # Video information
-                # --------------------------------------------
+        st.stop()
 
-                total_frames = int(
-                    cap.get(
-                        cv2.CAP_PROP_FRAME_COUNT
-                    )
+
+    # ========================================================
+    # VIDEO INFORMATION
+    # ========================================================
+
+    total_frames = int(
+        cap.get(
+            cv2.CAP_PROP_FRAME_COUNT
+        )
+    )
+
+
+    frame_number = 0
+    frames_checked = 0
+    positive_frames = 0
+
+    consecutive_positive = 0
+    max_consecutive_positive = 0
+
+    max_confidence = 0.0
+    detected_label = None
+
+    accident_found = False
+
+
+    # ========================================================
+    # PROGRESS BAR
+    # ========================================================
+
+    progress = st.progress(0)
+
+
+    # ========================================================
+    # READ VIDEO FRAME BY FRAME
+    # ========================================================
+
+    while True:
+
+        success, frame = cap.read()
+
+        if not success:
+            break
+
+
+        frame_number += 1
+
+
+        # ----------------------------------------------------
+        # Process every 5th frame
+        # ----------------------------------------------------
+
+        if frame_number % 5 != 0:
+            continue
+
+
+        frames_checked += 1
+
+
+        # ----------------------------------------------------
+        # YOLO DETECTION
+        # ----------------------------------------------------
+
+        detections = detector.detect(
+            frame
+        )
+
+
+        if len(detections) > 0:
+
+            positive_frames += 1
+
+            consecutive_positive += 1
+
+
+            if (
+                consecutive_positive
+                > max_consecutive_positive
+            ):
+
+                max_consecutive_positive = (
+                    consecutive_positive
                 )
 
 
-                frame_number = 0
-                frames_checked = 0
-                positive_frames = 0
+            # ------------------------------------------------
+            # Find highest confidence detection
+            # ------------------------------------------------
 
-                consecutive_positive = 0
-                max_consecutive_positive = 0
+            for detection in detections:
 
-                max_confidence = 0.0
-                detected_label = None
+                confidence = float(
+                    detection.get(
+                        "conf",
+                        0
+                    )
+                )
 
-                accident_found = False
-
-
-                # --------------------------------------------
-                # Progress bar
-                # --------------------------------------------
-
-                progress = st.progress(0)
-
-
-                # --------------------------------------------
-                # Read video frame-by-frame
-                # --------------------------------------------
-
-                while True:
-
-                    success, frame = cap.read()
+                label = detection.get(
+                    "label",
+                    "object"
+                )
 
 
-                    if not success:
-                        break
+                if confidence > max_confidence:
 
+                    max_confidence = (
+                        confidence
+                    )
 
-                    frame_number += 1
-
-
-                    # Process every 5th frame
-                    if frame_number % 5 != 0:
-                        continue
-
-
-                    frames_checked += 1
-
-
-                    # ----------------------------------------
-                    # YOLO detection
-                    # ----------------------------------------
-
-                    detections = detector.detect(
-                        frame
+                    detected_label = (
+                        label
                     )
 
 
-                    if len(detections) > 0:
+        else:
 
-                        positive_frames += 1
+            consecutive_positive = 0
 
-                        consecutive_positive += 1
 
+        # ====================================================
+        # CONFIRM ACCIDENT
+        # ====================================================
 
-                        if (
-                            consecutive_positive
-                            > max_consecutive_positive
-                        ):
+        if (
+            max_consecutive_positive
+            >= 5
+        ):
 
-                            max_consecutive_positive = (
-                                consecutive_positive
-                            )
+            accident_found = True
 
+            break
 
-                        # Find highest confidence
-                        for detection in detections:
 
-                            confidence = float(
-                                detection.get(
-                                    "conf",
-                                    0
-                                )
-                            )
+        # ====================================================
+        # UPDATE PROGRESS
+        # ====================================================
 
-                            label = detection.get(
-                                "label",
-                                "damage"
-                            )
+        if total_frames > 0:
 
+            progress_value = (
+                frame_number
+                / total_frames
+            )
 
-                            if confidence > max_confidence:
+            progress.progress(
+                min(
+                    progress_value,
+                    1.0
+                )
+            )
 
-                                max_confidence = (
-                                    confidence
-                                )
 
-                                detected_label = (
-                                    label
-                                )
+    # ========================================================
+    # RELEASE VIDEO
+    # ========================================================
 
+    cap.release()
 
-                    else:
+    progress.progress(1.0)
 
-                        consecutive_positive = 0
 
+    # ========================================================
+    # ACCIDENT DETECTED
+    # ========================================================
 
-                    # ----------------------------------------
-                    # Confirm accident
-                    # ----------------------------------------
+    if accident_found:
 
-                    if (
-                        max_consecutive_positive
-                        >= 5
-                    ):
+        now = datetime.now()
 
-                        accident_found = True
 
-                        break
+        accident_date = now.strftime(
+            "%d-%m-%Y"
+        )
 
+        accident_time = now.strftime(
+            "%H:%M:%S"
+        )
 
-                    # ----------------------------------------
-                    # Update progress
-                    # ----------------------------------------
 
-                    if total_frames > 0:
+        # ----------------------------------------------------
+        # Save session data
+        # ----------------------------------------------------
 
-                        progress_value = (
-                            frame_number
-                            / total_frames
-                        )
+        st.session_state.accident_detected = True
 
-                        progress.progress(
-                            min(
-                                progress_value,
-                                1.0
-                            )
-                        )
+        st.session_state.accident_date = (
+            accident_date
+        )
 
+        st.session_state.accident_time = (
+            accident_time
+        )
 
-                # --------------------------------------------
-                # Release video
-                # --------------------------------------------
+        st.session_state.gps_location = (
+            GPS_LOCATION
+        )
 
-                cap.release()
 
-                progress.progress(1.0)
+        # ----------------------------------------------------
+        # Display result
+        # ----------------------------------------------------
 
+        st.error(
+            "🚨 ACCIDENT DETECTED!"
+        )
 
-                # =================================================
-                # ACCIDENT DETECTED
-                # =================================================
 
-                if accident_found:
+        st.subheader(
+            "🚨 Accident Details"
+        )
 
-                    now = datetime.now()
 
+        col1, col2, col3 = st.columns(3)
 
-                    accident_date = (
-                        now.strftime(
-                            "%d-%m-%Y"
-                        )
-                    )
 
+        with col1:
 
-                    accident_time = (
-                        now.strftime(
-                            "%H:%M:%S"
-                        )
-                    )
+            st.metric(
+                "Date",
+                accident_date
+            )
 
 
-                    # Save session data
-                    st.session_state.accident_detected = True
+        with col2:
 
-                    st.session_state.accident_date = (
-                        accident_date
-                    )
+            st.metric(
+                "Time",
+                accident_time
+            )
 
-                    st.session_state.accident_time = (
-                        accident_time
-                    )
 
-                    st.session_state.gps_location = (
-                        GPS_LOCATION
-                    )
+        with col3:
 
+            st.metric(
+                "Confidence",
+                f"{max_confidence * 100:.1f}%"
+            )
 
-                    # ---------------------------------------------
-                    # Display result
-                    # ---------------------------------------------
 
-                    st.error(
-                        "🚨 ACCIDENT DETECTED!"
-                    )
+        st.write(
+            f"📍 GPS Location: {GPS_LOCATION}"
+        )
 
 
-                    st.subheader(
-                        "🚨 Accident Details"
-                    )
+        if detected_label:
 
+            st.write(
+                f"🔎 Detected: {detected_label}"
+            )
 
-                    col1, col2, col3 = st.columns(3)
 
+        st.write(
+            f"🎞️ Frames checked: {frames_checked}"
+        )
 
-                    with col1:
 
-                        st.metric(
-                            "Date",
-                            accident_date
-                        )
+        st.write(
+            f"✅ Positive frames: {positive_frames}"
+        )
 
 
-                    with col2:
+        st.write(
+            f"🔁 Consecutive detections: "
+            f"{max_consecutive_positive}"
+        )
 
-                        st.metric(
-                            "Time",
-                            accident_time
-                        )
 
+    # ========================================================
+    # NO ACCIDENT
+    # ========================================================
 
-                    with col3:
+    else:
 
-                        st.metric(
-                            "Confidence",
-                            f"{max_confidence * 100:.1f}%"
-                        )
+        st.session_state.accident_detected = False
 
+        st.success(
+            "✅ No Accident / Damage Detected"
+        )
 
-                    st.write(
-                        f"📍 GPS Location: "
-                        f"{GPS_LOCATION}"
-                    )
 
+        st.write(
+            f"🎞️ Frames checked: {frames_checked}"
+        )
 
-                    if detected_label:
 
-                        st.write(
-                            f"🔎 Detected: "
-                            f"{detected_label}"
-                        )
-
-
-                    st.write(
-                        f"🎞️ Frames checked: "
-                        f"{frames_checked}"
-                    )
-
-
-                    st.write(
-                        f"✅ Positive frames: "
-                        f"{positive_frames}"
-                    )
-
-
-                    st.write(
-                        f"🔁 Consecutive detections: "
-                        f"{max_consecutive_positive}"
-                    )
-
-
-                # =================================================
-                # NO ACCIDENT
-                # =================================================
-
-                else:
-
-                    st.session_state.accident_detected = False
-
-                    st.success(
-                        "✅ No Accident / Damage Detected"
-                    )
-
-
-                    st.write(
-                        f"🎞️ Frames checked: "
-                        f"{frames_checked}"
-                    )
-
-
-                    st.write(
-                        f"Positive frames: "
-                        f"{positive_frames}"
-                    )
+        st.write(
+            f"Positive frames: {positive_frames}"
+        )
 
 
 # ============================================================
@@ -520,16 +542,18 @@ if st.session_state.accident_detected:
                 "Please enter family member name."
             )
 
+
         elif family_phone == "":
 
             st.warning(
                 "Please enter family phone number."
             )
 
+
         else:
 
             # ------------------------------------------------
-            # Create emergency message
+            # Emergency message
             # ------------------------------------------------
 
             emergency_message = (
@@ -564,20 +588,17 @@ if st.session_state.accident_detected:
 
 
                 st.write(
-                    f"👤 Family Member: "
-                    f"{family_name}"
+                    f"👤 Family Member: {family_name}"
                 )
 
 
                 st.write(
-                    f"📱 Phone: "
-                    f"{family_phone}"
+                    f"📱 Phone: {family_phone}"
                 )
 
 
                 st.write(
-                    f"📨 Message ID: "
-                    f"{sms_sid}"
+                    f"📨 Message ID: {sms_sid}"
                 )
 
 
@@ -590,3 +611,12 @@ if st.session_state.accident_detected:
                 st.write(
                     f"Error: {error}"
                 )
+
+
+
+
+
+
+
+
+
