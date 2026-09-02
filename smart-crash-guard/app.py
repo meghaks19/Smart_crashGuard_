@@ -160,7 +160,7 @@ if st.button(
         # Check model
         # ----------------------------------------------------
 
-        if not damage_detector.available:
+        if not detector.available:
 
             st.error(
                 "❌ YOLO model is not available."
