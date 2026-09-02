@@ -10,7 +10,6 @@ class DamageDetector:
         "damage", "damaged", "dent", "scratch",
         "crack", "broken", "shatter", "wreck"
     )
-
     def __init__(self, model_path="yolov8n.pt", conf=0.45):
     self.model_path = Path(model_path)
     self.conf = conf
@@ -19,7 +18,6 @@ class DamageDetector:
 
     if not self.model_path.exists():
         return
-
     self.model = YOLO(str(self.model_path))
     self.damage_ids = list(self.model.names.keys())
 
