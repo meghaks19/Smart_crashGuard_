@@ -2,8 +2,6 @@ import os
 import cv2
 import streamlit as st
 from datetime import datetime
-from twilio.rest import Client
-
 from damage_detector import DamageDetector
 
 
