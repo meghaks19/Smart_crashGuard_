@@ -49,19 +49,6 @@ st.write(
 )
 
 
-# ============================================================
-# GPS LOCATION
-# ============================================================
-
-GPS_LATITUDE = 12.9716
-GPS_LONGITUDE = 77.5946
-
-GPS_LOCATION = (
-    f"{GPS_LATITUDE}° N, "
-    f"{GPS_LONGITUDE}° E"
-)
-
-st.write(f"📍 GPS Location: {GPS_LOCATION}")
 
 # ============================================================
 # MODEL PATH
@@ -98,28 +85,6 @@ if not detector.available:
 
     st.stop()
 
-
-# ============================================================
-# TWILIO SMS FUNCTION
-# ============================================================
-
-def send_sms(phone_number, message):
-    account_sid = st.secrets["TWILIO_ACCOUNT_SID"]
-    auth_token = st.secrets["TWILIO_AUTH_TOKEN"]
-    twilio_phone = st.secrets["TWILIO_PHONE_NUMBER"]
-
-    client = Client(
-        account_sid,
-        auth_token
-    )
-
-    message_response = client.messages.create(
-        body=message,
-        from_=twilio_phone,
-        to=phone_number
-    )
-
-    return message_response.sid
 
 
 # ============================================================
@@ -811,120 +776,5 @@ if st.button(
             f"Positive frames: "
             f"{positive_frames}"
         )
-
-
-# ============================================================
-# FAMILY ALERT SECTION
-# ============================================================
-
-if st.session_state.accident_detected:
-
-    st.divider()
-
-    st.subheader(
-        "📱 Emergency Family Alert"
-    )
-
-
-    family_name = st.text_input(
-        "Family Member Name"
-    )
-
-
-    family_phone = st.text_input(
-        "Family Member Phone Number",
-        placeholder="+91XXXXXXXXXX"
-    )
-
-
-    # --------------------------------------------------------
-    # SEND ALERT
-    # --------------------------------------------------------
-
-    if st.button(
-        "📨 Send Alert to Family"
-    ):
-
-        if family_name == "":
-
-            st.warning(
-                "Please enter family member name."
-            )
-
-
-        elif family_phone == "":
-
-            st.warning(
-                "Please enter family phone number."
-            )
-
-
-        else:
-
-            # ------------------------------------------------
-            # Emergency message
-            # ------------------------------------------------
-
-            emergency_message = (
-                "🚨 SMART CRASHGUARD ALERT 🚨\n\n"
-                "Possible accident detected.\n\n"
-                f"Date: "
-                f"{st.session_state.accident_date}\n"
-                f"Video Time: "
-                f"{st.session_state.accident_time}\n"
-                f"GPS Location: "
-                f"{st.session_state.gps_location}\n\n"
-                "Please check immediately."
-            )
-
-
-            # ------------------------------------------------
-            # Send SMS
-            # ------------------------------------------------
-
-            try:
-
-                sms_sid = send_sms(
-                    family_phone,
-                    emergency_message
-                )
-
-
-                st.success(
-                    "✅ Emergency message sent "
-                    "to family member!"
-                )
-
-
-                st.write(
-                    f"👤 Family Member: "
-                    f"{family_name}"
-                )
-
-
-                st.write(
-                    f"📱 Phone: "
-                    f"{family_phone}"
-                )
-
-
-                st.write(
-                    f"📨 Message ID: "
-                    f"{sms_sid}"
-                )
-
-
-            except Exception as error:
-
-                st.error(
-                    "❌ Unable to send SMS."
-                )
-
-
-                st.write(
-                    f"Error: {error}"
-                )
-
-        
 
 
