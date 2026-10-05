@@ -547,25 +547,6 @@ if st.button(
 
 
         # ----------------------------------------------------
-        # Save session data
-        # ----------------------------------------------------
-
-        st.session_state.accident_detected = True
-
-        st.session_state.accident_date = (
-            accident_date
-        )
-
-        st.session_state.accident_time = (
-            accident_time
-        )
-
-        st.session_state.gps_location = (
-            GPS_LOCATION
-        )
-
-
-        # ----------------------------------------------------
         # Display result
         # ----------------------------------------------------
 
