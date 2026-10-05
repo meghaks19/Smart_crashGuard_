@@ -560,44 +560,6 @@ if st.button(
         )
 
 
-        col1, col2, col3 = st.columns(3)
-
-
-        with col1:
-
-            st.metric(
-                "Date",
-                accident_date
-            )
-
-
-        with col2:
-
-            st.metric(
-                "Video Time",
-                accident_time
-            )
-
-
-        with col3:
-
-            st.metric(
-                "Confidence",
-                f"{max_confidence * 100:.1f}%"
-            )
-
-
-        st.write(
-            f"📍 GPS Location: {GPS_LOCATION}"
-        )
-
-        
-        st.write(
-            f"🔁 Consecutive detections: "
-            f"{max_consecutive_positive}"
-        )
-
-
         # ====================================================
         # EXTRACT 10 MINUTES BEFORE + AFTER
         # ====================================================
