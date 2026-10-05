@@ -625,32 +625,6 @@ if st.button(
             )
 
 
-            col1, col2, col3 = st.columns(3)
-
-
-            with col1:
-
-                st.metric(
-                    "Before Accident",
-                    f"{actual_before / 60:.1f} min"
-                )
-
-
-            with col2:
-
-                st.metric(
-                    "Accident",
-                    accident_time
-                )
-
-
-            with col3:
-
-                st.metric(
-                    "After Accident",
-                    f"{actual_after / 60:.1f} min"
-                )
-
 
             # ------------------------------------------------
             # Display extracted video
